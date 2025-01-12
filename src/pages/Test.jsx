@@ -167,11 +167,11 @@ const Test = () => {
       const { totalScore } = response.data.result;
       navigate("/result", { state: { score: totalScore } });
     } catch (error) {
-      console.error(
-        "Error submitting answers:",
-        error.response?.data || error.message
-      );
-      setError("Terjadi kesalahan saat mengirim jawaban.");
+      const errorMessage =
+        error.response?.status === 401
+          ? "Anda tidak memiliki izin untuk mengakses."
+          : "Terjadi kesalahan saat mengirim jawaban.";
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -254,9 +254,9 @@ const Test = () => {
 
           <FormControl component="fieldset" fullWidth>
             <RadioGroup
-              value={answers[currentQuestion.id] || ""}
+              value={answers[currentQuestion._id] || ""}
               onChange={(e) =>
-                handleAnswerChange(currentQuestion.id, e.target.value)
+                handleAnswerChange(currentQuestion._id, e.target.value)
               }
             >
               {["A", "B", "C", "D"].map((option) => (
@@ -267,7 +267,7 @@ const Test = () => {
                   label={currentQuestion[`option${option}`]}
                   sx={{
                     backgroundColor:
-                      answers[currentQuestion.id] === option
+                      answers[currentQuestion._id] === option
                         ? "rgba(63, 81, 181, 0.1)"
                         : "transparent",
                     borderRadius: 2,
@@ -305,7 +305,7 @@ const Test = () => {
                 variant="contained"
                 color="primary"
                 onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
-                disabled={!answers[currentQuestion.id]}
+                disabled={!answers[currentQuestion._id]}
               >
                 Selanjutnya
               </Button>
@@ -315,7 +315,7 @@ const Test = () => {
                 variant="contained"
                 color="secondary"
                 onClick={handleSubmit}
-                disabled={submitting || !answers[currentQuestion.id]}
+                disabled={submitting || !answers[currentQuestion._id]}
               >
                 {submitting ? "Mengirim..." : "Selesai"}
               </Button>
