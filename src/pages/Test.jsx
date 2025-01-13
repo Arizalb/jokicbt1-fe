@@ -90,7 +90,9 @@ const Test = () => {
             },
           }
         );
-        setQuestions(response.data);
+        localStorage.setItem("examId", response.data.examId); // Save the exam ID to localStorage
+        console.log("data: ", response.data);
+        setQuestions(response.data.questions);
       } catch (error) {
         console.error("Error fetching questions:", error);
         setError("Gagal memuat soal. Silakan coba lagi.");
@@ -131,27 +133,68 @@ const Test = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("user_id"); // Assuming userId is stored in localStorage
-
-    // Prepare the answers in the required format
-    const answersPayload = Object.entries(answers).map(
-      ([questionId, userAnswer]) => ({
-        questionId: questionId,
-        userAnswer: userAnswer,
-      })
+  // Fungsi validasi tambahan
+  const validateAnswers = () => {
+    // Pastikan semua pertanyaan terjawab
+    const unansweredQuestions = questions.filter(
+      (question) => !answers[question._id]
     );
 
+    if (unansweredQuestions.length > 0) {
+      setError(
+        `Harap jawab semua pertanyaan. ${unansweredQuestions.length} soal belum terjawab.`
+      );
+      return false;
+    }
+
+    // Validasi jawaban
+    const invalidAnswers = questions.filter(
+      (question) =>
+        answers[question._id] &&
+        !["A", "B", "C", "D"].includes(answers[question._id])
+    );
+
+    if (invalidAnswers.length > 0) {
+      setError("Terdapat jawaban tidak valid");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
+    const examId = localStorage.getItem("examId");
+
+    // Validasi terlebih dahulu
+    if (!validateAnswers()) {
+      return;
+    }
+
+    // Validasi data sebelum submit
+    if (!examId || !userId) {
+      setError("Data ujian atau pengguna tidak valid");
+      return;
+    }
+
+    // Transformasi answers sesuai struktur payload yang diinginkan
+    const answersPayload = questions.map((question) => ({
+      questionId: question._id,
+      userAnswer: answers[question._id],
+    }));
+
     const payload = {
-      userId: userId, // User ID
+      exam: examId, // Perhatikan perubahan key dari examId ke exam
+      userId: userId,
       answers: answersPayload,
     };
+
+    console.log("Payload yang akan dikirim:", JSON.stringify(payload, null, 2));
 
     try {
       setSubmitting(true);
 
-      // Send the request to the backend
       const response = await axios.post(
         "https://jokicbt1.vercel.app/api/results/submit-answer",
         payload,
@@ -163,14 +206,44 @@ const Test = () => {
         }
       );
 
-      // Handle the response data
-      const { totalScore } = response.data.result;
-      navigate("/result", { state: { score: totalScore } });
+      // Log FULL response untuk melihat struktur sebenarnya
+      console.log("Full Response:", response);
+      console.log("Response Data:", response.data);
+
+      // Perbaiki pengecekan response
+      if (response.data) {
+        // Sesuaikan dengan struktur aktual response dari backend
+        // Misalnya, jika backend mengembalikan objek dengan properti berbeda
+        const score =
+          response.data.score ||
+          response.data.totalScore ||
+          response.data.result ||
+          null;
+
+        if (score !== null) {
+          navigate("/result", { state: { score: score } });
+        } else {
+          // Jika tidak menemukan skor, log detail response
+          console.error(
+            "Tidak dapat menemukan skor dalam response:",
+            response.data
+          );
+          setError("Gagal mengambil skor. Silakan hubungi administrator.");
+        }
+      } else {
+        throw new Error("Tidak ada data dalam response");
+      }
     } catch (error) {
+      // Logging error yang lebih komprehensif
+      console.error("Full Error Object:", error);
+      console.error("Error Response Data:", error.response?.data);
+      console.error("Error Message:", error.message);
+
       const errorMessage =
-        error.response?.status === 401
-          ? "Anda tidak memiliki izin untuk mengakses."
-          : "Terjadi kesalahan saat mengirim jawaban.";
+        error.response?.data?.message ||
+        error.message ||
+        "Gagal mengirim jawaban. Silakan coba lagi.";
+
       setError(errorMessage);
     } finally {
       setSubmitting(false);

@@ -16,38 +16,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ReplayIcon from "@mui/icons-material/Replay";
 import ScoreIcon from "@mui/icons-material/Score";
-
-// Custom Theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#3f51b5",
-    },
-    success: {
-      main: "#4caf50",
-    },
-    error: {
-      main: "#f44336",
-    },
-    background: {
-      default: "#f4f4f4",
-    },
-  },
-  typography: {
-    fontFamily: "Poppins, Arial, sans-serif",
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: "none",
-          padding: "12px 24px",
-        },
-      },
-    },
-  },
-});
+import theme from "../theme";
 
 // Styled Components
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -92,7 +61,7 @@ const Result = () => {
   }, []);
 
   // Calculate percentage
-  const percentage = ((score / totalQuestions) * 10).toFixed(2);
+  const percentage = ((score / totalQuestions) * totalQuestions).toFixed(2);
 
   // Determine pass/fail status and color
   const isPassed = score >= 70;

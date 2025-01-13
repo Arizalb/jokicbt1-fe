@@ -3,12 +3,12 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#90caf9", // Biru muda
+      main: "#00695f", // Biru muda
       contrastText: "#ffffff",
     },
     secondary: {
       main: "#a5d6a7", // Hijau lembu
-      contrastText: "#ffffff",
+      contrastText: "#356213",
     },
   },
   typography: {
