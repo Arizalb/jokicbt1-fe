@@ -3,7 +3,7 @@ import { Container, Typography, Link, Box, ThemeProvider } from "@mui/material";
 import theme from "../theme"; // Ensure to adjust the import path to where you saved your theme
 
 const Footer = () => {
-  const ownerName = "Your Name"; // Replace with the actual owner's name
+  const ownerName = "Devi Amanda Rista"; // Replace with the actual owner's name
 
   return (
     <ThemeProvider theme={theme}>
